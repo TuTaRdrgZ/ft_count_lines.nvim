@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-global
 local M = {}
 
 -- this plugin uses nvim-treesitter to count the number of lines in a function.
@@ -13,14 +14,16 @@ vim.api.nvim_create_autocmd({"CursorMoved"}, {
   "c",
   "count_lines",
   [[
-  (function_definition
-  type: (primitive_type)
-  declarator: (function_declarator 
-  declarator: (identifier)
-  parameters: (parameter_list
-  (parameter_declaration))) @dec
-  body: (compound_statement
-  (declaration))) @body
+
+    (function_definition
+     type: (primitive_type)
+     declarator: (function_declarator 
+        declarator: (identifier)
+        parameters: (parameter_list
+          (parameter_declaration
+			type: (type_identifier)
+			declarator: (identifier)))))
+        body: (compound_statement) @body
   ]]
   ),
   pattern = "*.c",
@@ -39,7 +42,6 @@ vim.api.nvim_create_autocmd({"CursorMoved"}, {
     if query == nil then
       return
     end
-    
     local all_functions = {}
 
     for id, node in query:iter_captures(tree:root(), event.buf) do
