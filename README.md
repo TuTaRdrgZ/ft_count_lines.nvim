@@ -22,11 +22,11 @@ To install with Lazy.nvim:
 ## Usage
 
 Once installed and configured, the plugin will automatically analyze your .c files and provide the total line count of each function.
-Commands
 
 ## Norminette Compliance
 
-This plugin assists in verifying that the functions in your .c files adhere to the Norminette's function size constraints. Each function's total line count will be displayed, helping you ensure that no function exceeds the limit.
-Requirements
+This plugin assists in verifying that the functions in your `.c` files adhere to the Norminette's function size constraints. Each function's total line count will be displayed, helping you ensure that no function exceeds the limit.
+
+### Requirements
 
 Neovim 0.5+ for Lua plugin support.
