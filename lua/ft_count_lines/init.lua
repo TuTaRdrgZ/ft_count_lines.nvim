@@ -1,12 +1,6 @@
 ---@diagnostic disable: undefined-global
 local M = {}
 
--- this plugin uses nvim-treesitter to count the number of lines in a function.
--- it uses treesitter to catch the current node at the cursor and then counts the number of lines in that node.
--- the type of node is called body and its parent must be a function_definition, so it only works with functions.
--- it should work with the CursorMoved autocmd
-
-
 local group = vim.api.nvim_create_augroup("CountLines", { clear = true })
 
 vim.api.nvim_create_autocmd({"CursorMoved"}, {
@@ -14,16 +8,7 @@ vim.api.nvim_create_autocmd({"CursorMoved"}, {
   "c",
   "count_lines",
   [[
-
-    (function_definition
-     type: (primitive_type)
-     declarator: (function_declarator 
-        declarator: (identifier)
-        parameters: (parameter_list
-          (parameter_declaration
-			type: (type_identifier)
-			declarator: (identifier)))))
-        body: (compound_statement) @body
+    (function_definition) @body
   ]]
   ),
   pattern = "*.c",
@@ -66,24 +51,13 @@ vim.api.nvim_create_autocmd({"CursorMoved"}, {
       local start_row, _, end_row, _ = node:range()
       local result = end_row - start_row - 2
       if result > 25 then
-        vim.api.nvim_buf_set_virtual_text(event.buf, ns, start_row, {{">> " .. result .. " <<", "ErrorMsg"}}, {})
+        vim.api.nvim_buf_set_virtual_text(event.buf, ns, start_row, {{">> " .. result .. " <<", "IncSearch"}}, {})
       else
         vim.api.nvim_buf_set_virtual_text(event.buf, ns, start_row, {{">> " .. result .. " <<", "Comment"}}, {})
       end
     end
 
-    -- local node_parent = node:parent()
-    -- if node:type() == "compound_statement" and node_parent:type() == "function_definition" then
-    --   local start_row, _, end_row, _ = node:range()
-    --   local result = end_row - start_row - 1
-    --   if result > 25 then
-    --     print("AAA FUNCTION LINES: " .. (result) .. " AAA")
-    --   else
-    --     print("--- FUNCTION LINES: " .. (result) .. " ---")
-    --   end
-    -- end
   end
 })
-
 
 return M
