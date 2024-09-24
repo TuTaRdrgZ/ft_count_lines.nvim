@@ -50,13 +50,14 @@ vim.api.nvim_create_autocmd({"CursorMoved"}, {
     for _, node in ipairs(all_functions) do
       local start_row, _, end_row, _ = node:range()
       local result = end_row - start_row - 2
+      local str = "FUNCTION LINES: " .. result
+
       if result > 25 then
-        vim.api.nvim_buf_set_virtual_text(event.buf, ns, start_row, {{">> " .. result .. " <<", "IncSearch"}}, {})
+        vim.api.nvim_buf_set_virtual_text(event.buf, ns, start_row, {{"   " .. str .. "   ", "ErrorMsg"}}, {})
       else
-        vim.api.nvim_buf_set_virtual_text(event.buf, ns, start_row, {{">> " .. result .. " <<", "Comment"}}, {})
+        vim.api.nvim_buf_set_virtual_text(event.buf, ns, start_row, {{">> " .. str .. " <<", "Comment"}}, {})
       end
     end
-
   end
 })
 
