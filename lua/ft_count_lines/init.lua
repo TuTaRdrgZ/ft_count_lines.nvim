@@ -3,7 +3,7 @@ local M = {}
 
 local group = vim.api.nvim_create_augroup("CountLines", { clear = true })
 
-vim.api.nvim_create_autocmd({"CursorMoved", "TextChanged"}, {
+vim.api.nvim_create_autocmd({"BufEnter", "TextChangedI"}, {
   vim.treesitter.query.set(
   "c",
   "count_lines",
