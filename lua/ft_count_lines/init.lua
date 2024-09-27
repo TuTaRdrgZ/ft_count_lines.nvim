@@ -3,7 +3,7 @@
 local M = {}
 
 local group = vim.api.nvim_create_augroup("CountLines", { clear = true })
-local ns = vim.api.nvim_create_namespace("count_lines") -- Namespace for diagnostics
+local ns = vim.api.nvim_create_namespace("count_lines") -- Namespace for extmarks
 local enabled = false -- State flag
 local line_cache = {} -- Cache to track lines' content
 
@@ -26,9 +26,10 @@ local function get_buffer_lines(bufnr)
   return vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 end
 
--- Function to run the counting of function lines and populate diagnostics
-local function set_diagnostics(bufnr)
-  vim.diagnostic.reset(ns, bufnr) -- Clear previous diagnostics
+-- Function to run the counting of function lines and set extmarks
+local function set_extmarks(bufnr)
+  -- Clear previous extmarks
+  vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
 
   local parser = vim.treesitter.get_parser(bufnr, "c")
   local tree = parser:parse()[1]
@@ -59,27 +60,21 @@ local function set_diagnostics(bufnr)
     return
   end
 
-  local diagnostics = {}
-
   for _, node in ipairs(all_functions) do
     local start_row, _, end_row, _ = node:range()
     local result = end_row - start_row - 2 -- Calculate the number of lines
 
-    local message = "FUNCTION LINES: " .. result
-    local severity = result > 25 and vim.diagnostic.severity.ERROR or vim.diagnostic.severity.INFO
+    local message = ">> FUNCTION LINES: " .. result .. " <<"
+    local hl_group = result > 25 and "Error" or "Comment"
 
-    table.insert(diagnostics, {
-      lnum = end_row, -- Line number (0-indexed)
-      col = 0, -- Column (start at 0 for now)
-      severity = severity, -- Severity based on the number of lines
-      message = message
+    -- Set extmark with virtual text
+    vim.api.nvim_buf_set_extmark(bufnr, ns, start_row, 0, {
+      virt_text = { { message, hl_group } }, -- Display the message with highlighting
+      virt_text_pos = "eol", -- Position at the end of the line
     })
   end
 
-  -- Set diagnostics for the buffer
-  vim.diagnostic.set(ns, bufnr, diagnostics)
-
-  -- Update cache of lines after diagnostics
+  -- Update cache of lines after setting extmarks
   line_cache[bufnr] = get_buffer_lines(bufnr)
 end
 
@@ -93,13 +88,13 @@ end
 
 -- Autocommand function to handle line changes or file save
 local function set_autocmd()
-  -- Run diagnostics on buffer write (after the file is saved)
+  -- Set extmarks on buffer write (after the file is saved)
   vim.api.nvim_create_autocmd({"BufWritePost"}, {
     pattern = {"*.c"}, -- Apply to .c files
     group = group,
     callback = function(event)
       if not enabled then return end -- Check if counting is enabled
-      set_diagnostics(event.buf) -- Run counting diagnostics on save
+      set_extmarks(event.buf) -- Run counting diagnostics on save
     end
   })
 
@@ -122,7 +117,7 @@ local function set_autocmd()
       end
 
       if changed then
-        set_diagnostics(bufnr) -- Re-run diagnostics if there were changes
+        set_extmarks(bufnr) -- Re-run extmarks if there were changes
       end
     end
   })
@@ -133,9 +128,9 @@ function M.enable()
   if not enabled then
     enabled = true
     set_autocmd() -- Reset autocommands when enabling
-    -- Run diagnostics immediately after enabling
+    -- Run extmarks immediately after enabling
     local bufnr = vim.api.nvim_get_current_buf() -- Get the current buffer number
-    set_diagnostics(bufnr) -- Run counting diagnostics immediately
+    set_extmarks(bufnr) -- Run counting diagnostics immediately
   end
 end
 
@@ -144,7 +139,7 @@ function M.disable()
   if enabled then
     enabled = false
     vim.api.nvim_clear_autocmds({ group = group }) -- Clear autocommands to disable
-    vim.diagnostic.reset(ns) -- Clear diagnostics when disabled
+    vim.api.nvim_buf_clear_namespace(0, ns, 0, -1) -- Clear extmarks when disabled
   end
 end
 
