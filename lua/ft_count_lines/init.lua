@@ -146,10 +146,10 @@ end
 -- Toggle function
 function M.toggle()
   if enabled then
-    print("Disabling Count Lines Feature")
+    vim.notify("Disabling Count Lines Feature", "Info", { title = "Count Lines" })
     M.disable()
   else
-    print("Enabling Count Lines Feature")
+    vim.notify("Enabling Count Lines Feature", "Info", { title = "Count Lines" })
     M.enable()
   end
 end
