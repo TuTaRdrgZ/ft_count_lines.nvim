@@ -15,7 +15,9 @@ To install with Lazy.nvim:
 {
   "TuTaRdrgZ/ft_count_lines.nvim",
   config = function()
-    require("ft_count_lines")
+    require("ft_count_lines").setup({
+        enable_on_start = true --Default is false
+    })
   end
 }
 ```
